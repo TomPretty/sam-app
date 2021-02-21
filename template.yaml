@@ -12,6 +12,11 @@ Globals:
     Environment:
       Variables:
         USERS_TABLE: !Ref UsersTable
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowHeaders: "'Content-Type'"
+      AllowMethods: "'*'"
 
 Parameters:
   Repository:

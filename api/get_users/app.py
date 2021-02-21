@@ -15,7 +15,10 @@ else:
 
 def success(body):
     return {
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
         "statusCode": 200,
         "body": json.dumps(body),
     }
