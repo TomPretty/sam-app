@@ -13,6 +13,19 @@ Globals:
       Variables:
         USERS_TABLE: !Ref UsersTable
 
+Parameters:
+  Repository:
+    Type: String
+    Description: GitHub Repository URL
+  Branch:
+    Type: String
+    Description: GitHub Branch
+    Default: main
+  OauthToken:
+    Type: String
+    Description: GitHub Repository URL
+    NoEcho: true
+
 Resources:
   UpdateLocationFunction:
     Type: AWS::Serverless::Function
@@ -55,6 +68,57 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - amplify.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: Amplify
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "amplify:*"
+                Resource: "*"
+
+  AmplifyApp:
+    Type: "AWS::Amplify::App"
+    Properties:
+      Name: PokemonFauxApp
+      Repository: !Ref Repository
+      Description: Pokemon Faux App
+      OauthToken: !Ref OauthToken
+      BuildSpec: |-
+        version: 0.1
+        frontend:
+          phases:
+            build:
+              commands:
+                - cd www
+                - yarn install
+                - yarn build --production
+          artifacts:
+            baseDirectory: www/build/
+            files:
+              - '**/*'
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      BranchName: !Ref Branch
+      AppId: !GetAtt AmplifyApp.AppId
+      Description: Amplify Console Branch
+      EnableAutoBuild: true
 
 Outputs:
   BaseApi:
