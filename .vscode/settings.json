@@ -1,0 +1,4 @@
+{
+  "python.pythonPath": "/Users/tpretty/.virtualenvs/scratchpad/bin/python",
+  "python.analysis.extraPaths": ["./get_users", "./update_location"]
+}
