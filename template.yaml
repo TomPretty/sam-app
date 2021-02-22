@@ -17,6 +17,7 @@ Globals:
       AllowOrigin: "'*'"
       AllowHeaders: "'Content-Type'"
       AllowMethods: "'*'"
+      MaxAge: "'600'"
 
 Parameters:
   Repository:

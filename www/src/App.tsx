@@ -1,56 +1,49 @@
-import React, { useEffect } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import React, { useEffect, useState } from "react";
+import * as Api from "./api";
+import { User } from "./models";
 
-const API_BASE_URL =
-  "https://1uelxo5nwl.execute-api.eu-west-1.amazonaws.com/Prod/";
-
-const GET_USERS_URL = API_BASE_URL + "users";
-const UPDATE_CURRENT_LOCATION_URL = API_BASE_URL + "current-location";
+const FETCH_USERS_INTERVAL_MS = 10_000;
+const UPDATE_LOCATION_INTERVAL_MS = 10_000;
 
 function App() {
+  const [users, setUsers] = useState<User[] | null>(null);
+
   useEffect(() => {
-    fetch(GET_USERS_URL)
-      .then((response) => response.json())
-      .then((data) => console.log(data));
-  });
+    Api.getUsers().then((users) => setUsers(users));
+
+    const interval = setInterval(() => {
+      Api.getUsers().then((users) => setUsers(users));
+    }, FETCH_USERS_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       const updateLocation: PositionCallback = (pos) => {
-        const body = {
+        Api.updateLocation({
           userId: "tom",
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
-        };
-
-        fetch(UPDATE_CURRENT_LOCATION_URL, {
-          method: "PUT",
-          body: JSON.stringify(body),
         });
       };
       navigator.geolocation.getCurrentPosition(updateLocation);
-    }, 5000);
+    }, UPDATE_LOCATION_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  });
+  }, []);
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Pokemon Faux</h1>
+      <h2>Users</h2>
+      <ul>
+        {users?.map((user) => (
+          <li key={user.id}>
+            {user.id} ({user.loc.lat}, {user.loc.lon})
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
