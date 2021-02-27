@@ -33,6 +33,9 @@
       "label": "api: init-db",
       "type": "shell",
       "command": "${config:python.pythonPath} api/local/init_db.py",
+      "presentation": {
+        "reveal": "never"
+      },
       "problemMatcher": []
     },
     {
@@ -45,6 +48,11 @@
       "type": "shell",
       "group": "build",
       "command": "sam build",
+      "problemMatcher": []
+    },
+    {
+      "label": "app: start",
+      "dependsOn": ["api: start", "www: start"],
       "problemMatcher": []
     }
   ]
