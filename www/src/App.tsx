@@ -5,7 +5,7 @@ import { User } from "./models";
 const FETCH_USERS_INTERVAL_MS = 10_000;
 const UPDATE_LOCATION_INTERVAL_MS = 10_000;
 
-function App() {
+const App: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
 
   useEffect(() => {
@@ -38,14 +38,19 @@ function App() {
       <h1>Pokemon Faux</h1>
       <h2>Users</h2>
       <ul>
-        {users?.map((user) => (
-          <li key={user.id}>
-            {user.id} ({user.loc.lat}, {user.loc.lon})
-          </li>
-        ))}
+        {users?.map((user) => {
+          const lat = parseFloat(user.loc.lat).toFixed(2);
+          const lon = parseFloat(user.loc.lat).toFixed(2);
+
+          return (
+            <li key={user.id}>
+              {user.id} ({lat}, {lon})
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
-}
+};
 
 export default App;

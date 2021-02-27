@@ -19,7 +19,7 @@ interface UpdateLocationBody {
   lon: number;
 }
 
-export function updateLocation(body: UpdateLocationBody) {
+export function updateLocation(body: UpdateLocationBody): Promise<Response> {
   return fetch(UPDATE_CURRENT_LOCATION_URL, {
     method: "PUT",
     headers: {

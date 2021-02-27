@@ -1,4 +1,12 @@
 {
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    ".aws-sam": true,
+    ".vscode": true,
+    ".python-version": true
+  },
   "python.pythonPath": "/Users/tpretty/.virtualenvs/scratchpad/bin/python",
-  "python.analysis.extraPaths": ["./get_users", "./update_location"]
+  "python.analysis.extraPaths": ["./api/get_users", "./api/update_location"]
 }
