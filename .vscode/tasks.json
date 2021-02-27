@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "www: start",
+      "type": "npm",
+      "script": "start",
+      "path": "www/",
+      "problemMatcher": [],
+      "detail": "react-scripts start"
+    },
+    {
+      "label": "www: lint-fix",
+      "type": "npm",
+      "script": "lint-fix",
+      "path": "www/",
+      "problemMatcher": [],
+      "detail": "eslint '*/**/*.{js,ts,tsx}' --fix"
+    },
+    {
+      "label": "api: start-lambdas",
+      "type": "shell",
+      "command": "sam local start-api",
+      "problemMatcher": []
+    },
+    {
+      "label": "api: start-db",
+      "type": "shell",
+      "command": "docker run -p 8000:8000 amazon/dynamodb-local",
+      "problemMatcher": []
+    },
+    {
+      "label": "api: init-db",
+      "type": "shell",
+      "command": "${config:python.pythonPath} api/local/init_db.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "api: start",
+      "dependsOn": ["api: start-lambdas", "api: start-db", "api: init-db"],
+      "problemMatcher": []
+    },
+    {
+      "label": "api: build",
+      "type": "shell",
+      "group": "build",
+      "command": "sam build",
+      "problemMatcher": []
+    }
+  ]
+}

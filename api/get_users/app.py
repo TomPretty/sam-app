@@ -2,15 +2,16 @@ import json
 import os
 
 import boto3
+from boto3_type_annotations.dynamodb import ServiceResource
 
 USERS_TABLE = os.getenv("USERS_TABLE")
 
 if os.getenv("AWS_SAM_LOCAL"):
-    table = boto3.resource(
+    table: ServiceResource = boto3.resource(
         "dynamodb", endpoint_url="http://docker.for.mac.localhost:8000/"
     ).Table(USERS_TABLE)
 else:
-    table = boto3.resource("dynamodb").Table(USERS_TABLE)
+    table: ServiceResource = boto3.resource("dynamodb").Table(USERS_TABLE)
 
 
 def success(body):

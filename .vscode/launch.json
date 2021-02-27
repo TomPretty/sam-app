@@ -1,6 +1,13 @@
 {
   "configurations": [
     {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "pwa-chrome",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/www"
+    },
+    {
       "type": "aws-sam",
       "request": "direct-invoke",
       "name": "sam-app:GetUsersFunction",
