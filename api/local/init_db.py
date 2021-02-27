@@ -35,9 +35,10 @@ def put_user(name: str, lat: str, lon: str):
 client.batch_write_item(
     RequestItems={
         "UsersTable": [
-            put_user("tom", "55.0", "55.0"),
-            put_user("harry", "50.0", "50.0"),
-            put_user("scott", "60.0", "60.0"),
+            put_user(name="tom", lat="51.749175167519965", lon="-1.23612530854294625"),
+            put_user(name="harry", lat="51.751120", lon="-1.231928"),
+            put_user(name="scott", lat="51.751657", lon="-1.225209"),
+            put_user(name="debug", lat="51.753000", lon="-1.232544"),
         ]
     }
 )
