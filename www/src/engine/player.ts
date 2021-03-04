@@ -10,15 +10,24 @@ class Player {
     this.marker = this.getMarker();
   }
 
-  updateLocation(): void {
-    const callback: PositionCallback = (pos) => {
-      Api.updateLocation({
-        userId: this.playerId,
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude,
-      });
-    };
-    navigator.geolocation.getCurrentPosition(callback);
+  updateLocation(): Promise<void> {
+    return new Promise((resolve) => {
+      const callback: PositionCallback = async (pos) => {
+        await Api.updateLocation({
+          userId: this.playerId,
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+        });
+
+        resolve();
+      };
+      navigator.geolocation.getCurrentPosition(callback);
+    });
+  }
+
+  getLocation(): { lat: number; lon: number } {
+    const { lat, lng } = this.marker.getLngLat();
+    return { lat, lon: lng };
   }
 
   protected getMarker(): mapboxgl.Marker {
@@ -30,7 +39,9 @@ class Player {
 
   protected getMarkerElement(): HTMLElement {
     const el = document.createElement("div");
-    el.className = "marker marker-me";
+    el.className = `marker ${
+      this.playerId === "harry" ? "marker-harry" : "marker-me"
+    } `;
 
     const icon = document.createElement("img");
     icon.src = `/assets/${this.playerId}.jpg`;
@@ -44,10 +55,10 @@ class Player {
 export default Player;
 
 export class DebugPlayer extends Player {
-  updateLocation(): void {
+  async updateLocation(): Promise<void> {
     const { lng: lon, lat } = this.marker.getLngLat();
 
-    Api.updateLocation({
+    await Api.updateLocation({
       userId: this.playerId,
       lat,
       lon,

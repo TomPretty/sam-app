@@ -3,14 +3,21 @@ import mapboxgl from "mapbox-gl";
 class Stag {
   userId: string;
   marker: mapboxgl.Marker;
+  isVisible: boolean;
 
   constructor(userId: string) {
     this.userId = userId;
     this.marker = this.getMarker();
+    this.isVisible = true;
   }
 
   setLocation(lat: number, lon: number): void {
     this.marker.setLngLat([lon, lat]);
+  }
+
+  getLocation(): { lat: number; lon: number } {
+    const { lat, lng } = this.marker.getLngLat();
+    return { lat, lon: lng };
   }
 
   protected getMarker(): mapboxgl.Marker {
