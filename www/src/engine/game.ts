@@ -10,16 +10,20 @@ const GAME_LOOP_INTERVAL_MS = isProd ? 2_000 : 10_000;
 mapboxgl.accessToken =
   "pk.eyJ1IjoidG9tcHJldHR5IiwiYSI6ImNqenlpZGRweTBoNGEzaHF0cGNobTk4djgifQ.NNH1CBfwaAo8G8xZ8n9N9g";
 
+type Stags = {
+  [id: string]: Stag;
+};
+
 class Game {
   map: mapboxgl.Map;
   player: Player;
-  stags: Stag[];
+  stags: Stags;
   gameLoopInterval: NodeJS.Timeout;
 
   constructor(playerId: string, element: string) {
     this.map = this.getMap(element);
     this.player = this.getPlayer(playerId);
-    this.stags = this.getStags(playerId);
+    this.stags = this.getStags();
     this.gameLoopInterval = this.startGameLoopInterval();
 
     this.drawPlayer();
@@ -54,13 +58,13 @@ class Game {
     return new Player(playerId);
   }
 
-  private getStags(playerId: string): Stag[] {
-    return [
-      new Stag("harry"),
-      new Stag("tom"),
-      new Stag("scott"),
-      new Stag("debug"),
-    ].filter((stag) => stag.userId != playerId);
+  private getStags(): Stags {
+    return {
+      harry: new Stag("harry"),
+      tom: new Stag("tom"),
+      scott: new Stag("scott"),
+      debug: new Stag("debug"),
+    };
   }
 
   private startGameLoopInterval() {
@@ -83,14 +87,10 @@ class Game {
     const users = await getUsers();
 
     users.forEach((user) => {
-      this.stags.forEach((stag) => {
-        if (user.id === stag.userId) {
-          const lat = parseFloat(user.loc.lat);
-          const lon = parseFloat(user.loc.lon);
+      const lat = parseFloat(user.loc.lat);
+      const lon = parseFloat(user.loc.lon);
 
-          stag.setLocation(lat, lon);
-        }
-      });
+      this.stags[user.id].setLocation(lat, lon);
     });
   }
 
@@ -99,7 +99,11 @@ class Game {
   }
 
   private drawStags(): void {
-    this.stags.forEach((stag) => {
+    Object.values(this.stags).forEach((stag) => {
+      if (stag.userId === this.player.playerId) {
+        return;
+      }
+
       stag.marker.remove();
       if (stag.isVisible) {
         stag.marker.addTo(this.map);
@@ -125,7 +129,7 @@ const STAG_VISIBILITY_RADIUS_IN_M = 250;
 
 export class HarryGame extends Game {
   protected updateVisibleStags(): void {
-    this.stags.forEach((stag) => {
+    Object.values(this.stags).forEach((stag) => {
       if (stag.userId === this.player.playerId) {
         return;
       }
