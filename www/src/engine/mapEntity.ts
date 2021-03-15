@@ -75,33 +75,16 @@ class MapEntity {
     return new MapEntity("debug", marker);
   }
 
-  static forCatcheableStag(userId: string, onCatch: () => void): MapEntity {
+  static forCatcheableStag(userId: string, onClick: () => void): MapEntity {
     const el = document.createElement("div");
     el.className = `marker marker-stag`;
     const icon = document.createElement("img");
     icon.src = `/assets/${userId}.jpg`;
 
     el.appendChild(icon);
+    el.onclick = () => onClick();
 
     const marker = new mapboxgl.Marker(el).setLngLat([0, 0]);
-
-    const popupEl = document.createElement("div");
-    const header = document.createElement("h1");
-    header.innerText = userId;
-    const button = document.createElement("button");
-    button.innerText = "catch";
-
-    button.onclick = () => {
-      marker.togglePopup();
-      onCatch();
-    };
-
-    popupEl.appendChild(header);
-    popupEl.appendChild(button);
-
-    const popup = new mapboxgl.Popup().setDOMContent(popupEl);
-
-    marker.setPopup(popup);
 
     return new MapEntity(userId, marker);
   }

@@ -4,6 +4,7 @@ import { isProd } from "./env";
 import { distanceBetweenPoints } from "./geo";
 import MapEntity from "./mapEntity";
 import * as Api from "./api";
+import { Message } from "../components/Map";
 
 const GAME_LOOP_INTERVAL_MS = isProd ? 2_000 : 10_000;
 
@@ -14,13 +15,21 @@ type Stags = {
   [id: string]: MapEntity;
 };
 
+type GameMessage = { type: "CAUGHT_STAG"; stagId: string };
+
 class Game {
   map: mapboxgl.Map;
   player: MapEntity;
   stags: Stags;
+  sendMessage: (message: Message) => void;
   gameLoopInterval: NodeJS.Timeout;
 
-  constructor(playerId: string, element: string) {
+  constructor(
+    playerId: string,
+    element: string,
+    sendMessage: (message: Message) => void
+  ) {
+    this.sendMessage = sendMessage;
     this.map = this.getMap(element);
     this.player = this.getPlayer(playerId);
     this.stags = this.getStags();
@@ -29,14 +38,23 @@ class Game {
     this.gameLoopInterval = this.startGameLoopInterval();
   }
 
-  static forPlayer(playerId: string, element: string): Game {
+  static forPlayer(
+    playerId: string,
+    element: string,
+    sendMessage: (message: Message) => void
+  ): Game {
     if (playerId === "debug") {
-      return new DebugGame(playerId, element);
+      return new DebugGame(playerId, element, sendMessage);
     } else if (playerId === "harry") {
-      return new HarryGame(playerId, element);
+      return new HarryGame(playerId, element, sendMessage);
     } else {
-      return new StagGame(playerId, element);
+      return new StagGame(playerId, element, sendMessage);
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onMessage(message: GameMessage): void {
+    return;
   }
 
   end(): void {
@@ -182,85 +200,15 @@ type CaughtStags = {
   [id: string]: boolean;
 };
 
-class StagdexControl {
-  _map?: mapboxgl.Map;
-  _container?: HTMLElement;
-  _overlay?: HTMLElement;
-  _stags: { [id: string]: HTMLElement };
-
-  constructor(stags: string[]) {
-    this._stags = {};
-    stags.forEach((stag) => {
-      this._stags[stag] = document.createElement("li");
-      this._stags[stag].textContent = stag;
-      this._stags[stag].className = "stagdex-stag";
-    });
-  }
-
-  catchStag(stag: string): void {
-    this._stags[stag].classList.add("stagdex-stag__caught");
-  }
-
-  onAdd(map: mapboxgl.Map): HTMLElement {
-    this._map = map;
-    this._container = document.createElement("div");
-    this._container.className = "mapboxgl-ctrl nearby-control";
-
-    const button = document.createElement("button");
-    button.className = "nearby-button";
-
-    this._container.appendChild(button);
-
-    this._overlay = document.createElement("div");
-    this._overlay.className = "nearby-overlay";
-    const header = document.createElement("h1");
-    header.textContent = "Nearby";
-    const body = document.createElement("div");
-    const list = document.createElement("ul");
-
-    const closeButton = document.createElement("button");
-    closeButton.textContent = "Close";
-    closeButton.onclick = () => {
-      if (!this._overlay || !this._container) {
-        return;
-      }
-      document.body.removeChild(this._overlay);
-      this._container.style.display = "block";
-    };
-
-    Object.values(this._stags).forEach((stag) => list.appendChild(stag));
-    body.append(list);
-
-    this._overlay.appendChild(header);
-    this._overlay.appendChild(body);
-    this._overlay.appendChild(closeButton);
-
-    this._container.onclick = () => {
-      if (!this._overlay || !this._container) {
-        return;
-      }
-      document.body.prepend(this._overlay);
-      this._container.style.display = "none";
-    };
-
-    return this._container;
-  }
-
-  onRemove(): void {
-    this._container?.parentNode?.removeChild(this._container);
-    this._map = undefined;
-  }
-}
-
 export class HarryGame extends Game {
   caughtStags: CaughtStags;
-  stagdex: StagdexControl;
 
-  constructor(playerId: string, element: string) {
-    super(playerId, element);
-
-    this.stagdex = new StagdexControl(["tom", "scott", "debug"]);
-    this.map.addControl(this.stagdex, "bottom-right");
+  constructor(
+    playerId: string,
+    element: string,
+    sendMessage: (message: Message) => void
+  ) {
+    super(playerId, element, sendMessage);
 
     this.caughtStags = {
       tom: false,
@@ -269,23 +217,31 @@ export class HarryGame extends Game {
     };
   }
 
+  onMessage(message: GameMessage): void {
+    switch (message.type) {
+      case "CAUGHT_STAG":
+        const stagId = message.stagId;
+        this.caughtStags[stagId] = true;
+        this.stags[stagId].marker.remove();
+        this.stags[stagId].setVisiblity(false);
+        break;
+    }
+  }
+
   protected getPlayer(playerId: string): MapEntity {
     return MapEntity.forHarry(playerId);
   }
 
   protected getStags(): Stags {
-    const onCatch = (userId: string) => () => {
-      this.caughtStags[userId] = true;
-      this.stags[userId].setVisiblity(false);
-      this.stags[userId].marker.remove();
-      this.stagdex.catchStag(userId);
+    const onClick = (userId: string) => () => {
+      this.sendMessage({ type: "SELECTED_STAG", stagId: userId });
     };
 
     return {
       harry: MapEntity.forHarry("harry"),
-      tom: MapEntity.forCatcheableStag("tom", onCatch("tom")),
-      scott: MapEntity.forCatcheableStag("scott", onCatch("scott")),
-      debug: MapEntity.forCatcheableStag("debug", onCatch("debug")),
+      tom: MapEntity.forCatcheableStag("tom", onClick("tom")),
+      scott: MapEntity.forCatcheableStag("scott", onClick("scott")),
+      debug: MapEntity.forCatcheableStag("debug", onClick("debug")),
     };
   }
 
