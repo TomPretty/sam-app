@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import Game from "../engine/game";
+import { useOnce } from "../hooks/useOnce";
 
 const GAME_CONTAINER_ID = "game-container";
 
@@ -7,11 +8,7 @@ const Map: React.FC = ({}) => {
   const [, setGame] = useState<Game | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!mapContainer.current) {
-      return;
-    }
-
+  useOnce(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const playerId = urlParams.get("playerId");
 
